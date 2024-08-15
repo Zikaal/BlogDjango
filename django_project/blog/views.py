@@ -1,9 +1,12 @@
 from typing import Any
 from django.db.models.query import QuerySet
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+
+from users.forms import CommentForm
 from .models import Post
 
 def home(request):
@@ -65,5 +68,23 @@ class PostDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
             return True
         return False
 
+
+@login_required
+def add_comment(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.post = post
+            comment.save()
+            return redirect('post-detail', pk=post.pk)
+    else:
+        form = CommentForm()
+    return render(request, 'blog/add_comment.html', {'form': form, 'post': post})
+
+
 def about(request):
     return render(request, 'blog/about.html',{'title': 'About'})
+

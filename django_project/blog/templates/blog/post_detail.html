@@ -15,4 +15,36 @@
       <p class="article-content">{{ object.content }}</p>
     </div>
   </article>
+
+  <!-- Comments -->
+  <h2 class="article-title">Comments:</h2>
+  <ul class="list-unstyled">
+    {% for comment in object.comments.all %}
+      <li>
+        <div class="media">
+          <img class="rounded-circle article-img" src="{{ comment.author.profile.image.url }}">
+          <div class="media-body">
+            <div class="media-body" style="display: flex; flex-direction: column; justify-content: center;">
+              <p>{{ comment.content }}</p>
+              <small class="text-muted">by {{ comment.author }}</small>
+            </div>
+          </div>
+        </div>
+      </li>
+    {% empty %}
+      <li>No comments yet.</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Add comment form -->
+  {% if user.is_authenticated %}
+    <h2 class="article-title">Add a comment:</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ comment_form.as_p }}
+      <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'add-comment' object.id %}">Add comment</a>
+    </form>
+  {% else %}
+    <p>You must be logged in to add a comment.</p>
+  {% endif %}
 {% endblock content %}
